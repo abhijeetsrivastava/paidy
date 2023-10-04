@@ -4,7 +4,7 @@ import scala.concurrent.duration.FiniteDuration
 
 case class ApplicationConfig(
     http: HttpConfig,
-    schedulerConfig: SchedulerConfig
+    scheduler: SchedulerConfig
 )
 
 case class HttpConfig(

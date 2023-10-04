@@ -2,32 +2,39 @@ package forex
 
 import akka.actor.ActorSystem
 import cats.effect._
+import forex.config.{ApplicationConfig, Config}
 import forex.scheduler.rates.CurrencyServiceScheduler
 import forex.scheduler.rates.CurrencyServiceScheduler.props
-
-import scala.concurrent.duration._
+import org.slf4j.{Logger, LoggerFactory}
 
 object Main extends IOApp {
 
+  val log: Logger = LoggerFactory.getLogger("Main")
+
   override def run(args: List[String]): IO[ExitCode] = {
+    // print path to application.confb
+
+    implicit val config: ApplicationConfig =
+      Config.stream[IO]("app").compile.lastOrError.unsafeRunSync()
+
     // Resource for managing the Actor System
-    val actorSystemResource = Resource.make(IO(ActorSystem("CurrenyServiceSchedulerActor")))(sys => IO(sys.terminate()).void)
+    val actorSystemResource =
+      Resource.make(IO(ActorSystem("CurrenyServiceSchedulerActor")))(sys => IO(sys.terminate()).void)
 
-    actorSystemResource.use {
-        actorSystem =>
-            // Create the Actor
-            val currencyActor = actorSystem.actorOf(props, "CurrenyServiceSchedulerActor")
+    actorSystemResource.use { actorSystem =>
+      // Create the Actor
+      val currencyActor = actorSystem.actorOf(props, "CurrenyServiceSchedulerActor")
 
-            // Schedule periodic task
-            actorSystem.scheduler.scheduleWithFixedDelay(
-                0.seconds,
-                5.seconds,
-                currencyActor,
-                CurrencyServiceScheduler.FetchCurrencyRates
-            )(actorSystem.dispatcher)
+      // Schedule periodic task
+      actorSystem.scheduler.scheduleWithFixedDelay(
+        config.scheduler.initialDelay,
+        config.scheduler.interval,
+        currencyActor,
+        CurrencyServiceScheduler.FetchCurrencyRates
+      )(actorSystem.dispatcher)
 
-             // Keep the app running
-            IO.never.as(ExitCode.Success)
+      // Keep the app running
+      IO.never.as(ExitCode.Success)
     }
 
   }
