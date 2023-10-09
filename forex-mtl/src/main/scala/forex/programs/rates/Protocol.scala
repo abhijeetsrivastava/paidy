@@ -9,4 +9,7 @@ object Protocol {
       to: Currency
   )
 
+  final case class GetAllRatesRequest(
+      pairs: List[GetRatesRequest]
+  )
 }

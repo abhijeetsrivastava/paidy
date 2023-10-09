@@ -5,15 +5,16 @@ import cats.effect._
 import forex.config.{ApplicationConfig, Config}
 import forex.scheduler.rates.CurrencyServiceScheduler
 import forex.scheduler.rates.CurrencyServiceScheduler.props
+import org.http4s.server.blaze.BlazeServerBuilder
 import org.slf4j.{Logger, LoggerFactory}
+
+import scala.concurrent.ExecutionContext
 
 object Main extends IOApp {
 
   val log: Logger = LoggerFactory.getLogger("Main")
 
   override def run(args: List[String]): IO[ExitCode] = {
-    // print path to application.confb
-
     implicit val config: ApplicationConfig =
       Config.stream[IO]("app").compile.lastOrError.unsafeRunSync()
 
@@ -37,21 +38,25 @@ object Main extends IOApp {
       IO.never.as(ExitCode.Success)
     }
 
+    new Application[IO]
+      .server(ExecutionContext.global)
+      .compile.drain.as(ExitCode.Success)
+
   }
 
 }
 
-// unused code
-//class Application[F[_]: ConcurrentEffect: Timer] {
-//
-//  def stream(ec: ExecutionContext): Stream[F, Unit] =
-//    for {
-//      config <- Config.stream("app")
-//      module = new Module[F](config)
-//      _ <- BlazeServerBuilder[F](ec)
-//            .bindHttp(config.http.port, config.http.host)
-//            .withHttpApp(module.httpApp)
-//            .serve
-//    } yield ()
-//
-//}
+class Application[F[_]: ConcurrentEffect: Timer] {
+  import fs2.Stream
+
+  def server(ec: ExecutionContext): Stream[F, Unit] =
+    for {
+      config <- Config.stream("app")
+      module = new Module[F](config)
+      _ <- BlazeServerBuilder[F](ec)
+            .bindHttp(config.http.port, config.http.host)
+            .withHttpApp(module.httpApp)
+            .serve
+    } yield ()
+
+}
