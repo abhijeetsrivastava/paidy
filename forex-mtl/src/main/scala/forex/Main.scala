@@ -41,7 +41,7 @@ object Main extends IOApp {
 //    new Application[IO]
 //      .server(ExecutionContext.global)
 //      .compile.drain.as(ExitCode.Success)
-//
+
   }
 
 }
@@ -52,6 +52,7 @@ class Application[F[_]: ConcurrentEffect: Timer] {
   def server(ec: ExecutionContext): Stream[F, Unit] =
     for {
       config <- Config.stream("app")
+      scheduler <- scheduler(config)
       module = new Module[F](config)
       _ <- BlazeServerBuilder[F](ec)
             .bindHttp(config.http.port, config.http.host)

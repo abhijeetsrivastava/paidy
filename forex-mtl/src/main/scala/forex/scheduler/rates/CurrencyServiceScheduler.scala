@@ -4,12 +4,12 @@ import akka.actor.{Actor, ActorLogging, Props}
 import cats.effect.{ConcurrentEffect, ContextShift, IO}
 import forex.config.{ApplicationConfig, Config, Forex}
 import forex.domain.{Currency, Rate}
+import forex.restclient.response.Response
 import forex.restclient.response.RestClient.makeGetRequest
 import forex.scheduler.rates.CurrencyServiceScheduler.FetchCurrencyRates
 
 import scala.concurrent.ExecutionContext.global
 
-//import scala.concurrent.ExecutionContext.Implicits.global
 
 class CurrencyServiceScheduler extends Actor with ActorLogging {
 
@@ -29,7 +29,7 @@ class CurrencyServiceScheduler extends Actor with ActorLogging {
     val uri = s"http://${request.host}:${request.port}/${request.endpoint}" +
       s"?pair=${currencyPairs.map(a => a.from.toString + "" + a.to).mkString("&pair=")}"
 
-    val forexResponseList: String = makeGetRequest[IO](uri, request.token).unsafeRunSync()
+    val forexResponseList: List[Response.ForexResponse] = makeGetRequest[IO](uri, request.token).unsafeRunSync()
     // store the response in cache
 
     println(s"response is $uri $forexResponseList")
