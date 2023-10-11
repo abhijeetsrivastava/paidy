@@ -38,10 +38,10 @@ object Main extends IOApp {
       IO.never.as(ExitCode.Success)
     }
 
-    new Application[IO]
-      .server(ExecutionContext.global)
-      .compile.drain.as(ExitCode.Success)
-
+//    new Application[IO]
+//      .server(ExecutionContext.global)
+//      .compile.drain.as(ExitCode.Success)
+//
   }
 
 }

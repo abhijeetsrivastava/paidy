@@ -4,7 +4,8 @@ import scala.concurrent.duration.FiniteDuration
 
 case class ApplicationConfig(
     http: HttpConfig,
-    scheduler: SchedulerConfig
+    scheduler: SchedulerConfig,
+    forex: Forex
 )
 
 case class HttpConfig(
@@ -16,4 +17,12 @@ case class HttpConfig(
 case class SchedulerConfig(
     initialDelay: FiniteDuration,
     interval: FiniteDuration
+)
+
+case class Forex(
+    host: String,
+    port: Int,
+    timeout: FiniteDuration,
+    endpoint: String,
+    token: String
 )

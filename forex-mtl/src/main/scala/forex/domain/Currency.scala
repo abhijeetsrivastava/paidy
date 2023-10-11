@@ -39,4 +39,7 @@ object Currency {
     case "USD" => USD
   }
 
+  // get all case class that extend currency
+    val Values: List[Currency] = List(AUD, CAD, CHF, EUR, GBP, NZD, JPY, SGD, USD)
+
 }
